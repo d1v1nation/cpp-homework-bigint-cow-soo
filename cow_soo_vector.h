@@ -29,7 +29,8 @@ class cow_soo_vector {
 
         big() : refcount(nullptr), data(nullptr) {assert(false);} // this should never happen, but as a part of an anonymous union it should exist
         big(big const &other) : refcount(other.refcount), data(other.data) {
-            *refcount += 1;
+            if (refcount != nullptr)
+                *refcount += 1;
         }
 
         big(big&& other) : refcount(other.refcount), data(other.data) {

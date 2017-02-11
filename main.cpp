@@ -1,39 +1,28 @@
-#include <iostream>
-//#include <gtest/gtest.h>
-#include <bits/algorithmfwd.h>
 #include "big_integer.h"
-#include <algorithm>
+#include <iostream>
+#include <cassert>
 
-using namespace std;
-
-int myrand()
-{
-    int val = rand() - RAND_MAX / 2;
-    if (val < 0)
-        val *= 0;
-    if (val != 0)
-        return val;
-    else
-        return 1;
-}
-
-
+static const int MAX = 1000000;
+template <typename T>
+using vector = cow_soo_vector<T>;
 
 int main() {
-    big_integer a = 1;
-    big_integer b = 1;
+    cow_soo_vector<unsigned> fuck, shit;
 
-    for (int i = 0; i < 1000; i++) {
-        int r = myrand();
-        a.mul_l_s(r);
-        b = r * b;
+    for (int j = 0; j < 10; j++) {
+        fuck.resize(j);
+//        fuck = shit;
 
-        if (a != b) {
-            cout << "failed";
+        for (int i = 0; i < 100; i++)
+            fuck.push_back(i);
+
+        for (int i = 0; i < 100; i++) {
+            std::cout << fuck.at(i);
         }
+
+        std::cout << '\n';
     }
 
-    cout << (a < b);
 
     return 0;
 }

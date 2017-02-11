@@ -5644,7 +5644,7 @@ class TestCaseNameIs {
 
 // Finds and returns a TestCase with the given name.  If one doesn't
 // exist, creates one and returns it.  It's the CALLER'S
-// RESPONSIBILITY to ensure that this function is only called WHEN THE
+// RESPONSIBILITY to ensure_fits that this function is only called WHEN THE
 // TESTS ARE NOT SHUFFLED.
 //
 // Arguments:

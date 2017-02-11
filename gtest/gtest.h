@@ -2453,7 +2453,7 @@ class MutexBase {
   void Unlock() {
     // Since the lock is being released the owner_ field should no longer be
     // considered valid. We don't protect writing to has_owner_ here, as it's
-    // the caller's responsibility to ensure that the current thread holds the
+    // the caller's responsibility to ensure_fits that the current thread holds the
     // mutex when this is called.
     has_owner_ = false;
     GTEST_CHECK_POSIX_SUCCESS_(pthread_mutex_unlock(&mutex_));
@@ -2568,7 +2568,7 @@ extern "C" inline void DeleteThreadLocalValue(void* value_holder) {
 // An object managed for a thread by a ThreadLocal instance is deleted
 // when the thread exits.  Or, if the ThreadLocal instance dies in
 // that thread, when the ThreadLocal dies.  It's the user's
-// responsibility to ensure that all other threads using a ThreadLocal
+// responsibility to ensure_fits that all other threads using a ThreadLocal
 // have exited when it dies, or the per-thread objects for those
 // threads will not be deleted.
 //
@@ -2696,7 +2696,7 @@ GTEST_API_ size_t GetThreadCount();
 // compiler and generates a warning in Sun Studio.  The Nokia Symbian
 // and the IBM XL C/C++ compiler try to instantiate a copy constructor
 // for objects passed through ellipsis (...), failing for uncopyable
-// objects.  We define this to ensure that only POD is passed through
+// objects.  We define this to ensure_fits that only POD is passed through
 // ellipsis on these systems.
 #if defined(__SYMBIAN32__) || defined(__IBMCPP__) || defined(__SUNPRO_CC)
 // We lose support for NULL detection where the compiler doesn't like
@@ -3215,7 +3215,7 @@ class GTEST_API_ Message {
   // The reason for this overload is that streaming a NULL pointer to
   // ostream is undefined behavior.  Depending on the compiler, you
   // may get "0", "(nil)", "(null)", or an access violation.  To
-  // ensure consistent result across compilers, we always treat NULL
+  // ensure_fits consistent result across compilers, we always treat NULL
   // as "(null)".
   template <typename T>
   inline Message& operator <<(T* const& pointer) {  // NOLINT
@@ -3782,7 +3782,7 @@ std::string GetTypeName() {
 #if GTEST_HAS_TYPED_TEST || GTEST_HAS_TYPED_TEST_P
 
 // AssertyTypeEq<T1, T2>::type is defined iff T1 and T2 are the same
-// type.  This can be used as a compile-time assertion to ensure that
+// type.  This can be used as a compile-time assertion to ensure_fits that
 // two types are equal.
 
 template <typename T1, typename T2>
@@ -8434,12 +8434,12 @@ InternalRunDeathTestFlag* ParseInternalRunDeathTestFlag();
 // Parameters:
 //   statement -  A statement that a macro such as EXPECT_DEATH would test
 //                for program termination. This macro has to make sure this
-//                statement is compiled but not executed, to ensure that
+//                statement is compiled but not executed, to ensure_fits that
 //                EXPECT_DEATH_IF_SUPPORTED compiles with a certain
 //                parameter iff EXPECT_DEATH compiles with it.
 //   regex     -  A regex that a macro such as EXPECT_DEATH would use to test
 //                the output of statement.  This parameter has to be
-//                compiled but not evaluated by this macro, to ensure that
+//                compiled but not evaluated by this macro, to ensure_fits that
 //                this macro only accepts expressions that a macro such as
 //                EXPECT_DEATH would accept.
 //   terminator - Must be an empty statement for EXPECT_DEATH_IF_SUPPORTED
@@ -8448,7 +8448,7 @@ InternalRunDeathTestFlag* ParseInternalRunDeathTestFlag();
 //                compile inside functions where ASSERT_DEATH doesn't
 //                compile.
 //
-//  The branch that has an always false condition is used to ensure that
+//  The branch that has an always false condition is used to ensure_fits that
 //  statement and regex are compiled (and thus syntactically correct) but
 //  never executed. The unreachable code macro protects the terminator
 //  statement from generating an 'unreachable code' warning in case
@@ -9442,7 +9442,7 @@ namespace testing {
 namespace internal {
 
 // UniversalPrinter<T>::Print(value, ostream_ptr) prints the given
-// value to the given ostream.  The caller must ensure that
+// value to the given ostream.  The caller must ensure_fits that
 // 'ostream_ptr' is not NULL, or the behavior is undefined.
 //
 // We define UniversalPrinter as a class template (as opposed to a
@@ -9555,7 +9555,7 @@ void PrintTo(const T& value, ::std::ostream* os) {
   // override Google Mock's format by defining a PrintTo() or
   // operator<<.  For STL containers, other formats can be
   // incompatible with Google Mock's format for the container
-  // elements; therefore we check for container types here to ensure
+  // elements; therefore we check for container types here to ensure_fits
   // that our format is used.
   //
   // The second argument of DefaultPrintTo() is needed to bypass a bug

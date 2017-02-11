@@ -6,13 +6,13 @@
 #include <ostream>
 #include <iostream>
 #include <limits>
+#include <assert.h>
 #include "big_integer.h"
 
 static const int BASE_POW = 30;
 static const unsigned CONTAINER_BASE = (1 << BASE_POW);
 
-
-big_integer::big_integer() : storage(std::vector<unsigned>(1, 0)), sign(1) {
+big_integer::big_integer() : storage(vector<unsigned>(1, 0)), sign(1) {
 }
 
 big_integer::big_integer(big_integer const& other) : storage(other.storage), sign(other.sign) {
@@ -20,30 +20,21 @@ big_integer::big_integer(big_integer const& other) : storage(other.storage), sig
 
 big_integer::big_integer(int a) {
 
-    if (a == std::numeric_limits<int>::min()) {
-        // bit magic;
+    long long aa = a;
 
-        this->storage.resize(2, 0);
-        this->sign = -1;
-        this->storage[1] = 2;
-
-        return;
-    }
-
-
-    if (a < 0) {
-        a *= -1;
+    if (aa < 0) {
+        aa *= -1;
         sign = -1;
     } else {
         sign = 1;
     }
-    storage = std::vector<unsigned>();
-    if (a >= (int)CONTAINER_BASE) {
-        storage.push_back((unsigned)a % CONTAINER_BASE);
-        if ((a >>= BASE_POW) != 0)
-            storage.push_back(a);
+    storage = vector<unsigned>();
+    if (aa >= CONTAINER_BASE) {
+        storage.push_back((unsigned)(aa % CONTAINER_BASE));
+        if ((aa >>= BASE_POW) != 0)
+            storage.push_back(aa);
     } else {
-        storage.push_back(a);
+        storage.push_back(aa);
     }
 }
 
@@ -78,7 +69,7 @@ big_integer::~big_integer() {
 }
 
 bool big_integer::is_z() const {
-    return (storage.size() == 1 && storage[0] == 0);
+    return (storage.size() == 1 && storage.at(0) == 0);
 }
 
 big_integer big_integer::add(big_integer const& other) const {
@@ -91,8 +82,8 @@ big_integer big_integer::add(big_integer const& other) const {
     long long acc = 0;
 
     for (long i = 0; i < ms || acc; i++) {
-        unsigned lh = (i < (int)this->storage.size() ? this->storage[i] : 0);
-        unsigned rh = (i < (int)other.storage.size() ? other.storage[i] : 0);
+        unsigned lh = (i < (int)this->storage.size() ? this->storage.at(i) : 0);
+        unsigned rh = (i < (int)other.storage.size() ? other.storage.at(i) : 0);
 
         acc += lh;
         acc += rh;
@@ -113,19 +104,19 @@ big_integer big_integer::sub(big_integer const& other) const {
     big_integer r(*this);
     r.sign = this->sign;
 
-    long ms = std::min(this->storage.size(), other.storage.size());
+    size_t ms = std::min(this->storage.size(), other.storage.size());
     r.storage.resize(std::max(this->storage.size(), other.storage.size()));
 
-    long ts = this->storage.size();
-    long os = other.storage.size();
+    size_t ts = this->storage.size();
+    size_t os = other.storage.size();
 
 
     long long acc = 0;
     int borrow = 0;
 
-    for (long i = 0; i < ms || borrow; i++) {
-        unsigned lh = ((i < ts) ? this->storage[i] : 0);
-        unsigned rh = ((i < os) ? other.storage[i] : 0);
+    for (size_t i = 0; i < ms || borrow; i++) {
+        unsigned lh = ((i < ts) ? this->storage.at(i) : 0);
+        unsigned rh = ((i < os) ? other.storage.at(i) : 0);
 
         acc += lh;
         acc -= rh;
@@ -204,11 +195,11 @@ bool operator<(const big_integer &a, const big_integer &b) {
             return a.sign < 0;
         }
 
-        int i = a.storage.size() - 1;
-        while (i >= 0 && a.storage[i] == b.storage[i])
+        long i = a.storage.size() - 1;
+        while (i >= 0 && a.storage.at(i) == b.storage.at(i))
             i--;
 
-        return (i >= 0) && (a.storage[i] < b.storage[i]);
+        return (i >= 0) && (a.storage.at(i) < b.storage.at(i));
     }
 }
 
@@ -226,9 +217,10 @@ bool operator==(const big_integer &a, const big_integer &b) {
     if (a.storage.size() != b.storage.size())
         return false;
 
-    int i = a.storage.size() - 1;
+    assert(a.storage.size() != 0);
+    long i = a.storage.size() - 1;
 
-    while (i >= 0 && a.storage[i] == b.storage[i])
+    while (i >= 0 && a.storage.at(i) == b.storage.at(i))
         i--;
 
     return i < 0;
@@ -308,15 +300,15 @@ big_integer &big_integer::operator-=(big_integer const &rhs) {
 
 big_integer &big_integer::operator&=(big_integer const &rhs) {
     big_integer r = rhs;
-    int sz = std::max(this->storage.size(), r.storage.size());
+    size_t sz = std::max(this->storage.size(), r.storage.size());
     this->comp(sz);
     r.comp(sz);
 
     this->storage.reserve(sz);
-    for (int i = 0; i < sz; i++) {
-        unsigned ld = (i < (int)this->storage.size()) ? this->storage[i] : CONTAINER_BASE - 1;
-        unsigned rd = (i < (int)r.storage.size()) ? r.storage[i] : CONTAINER_BASE - 1;
-        if (i == (int)this->storage.size())
+    for (size_t i = 0; i < sz; i++) {
+        unsigned ld = (i < this->storage.size()) ? this->storage[i] : CONTAINER_BASE - 1;
+        unsigned rd = (i < r.storage.size()) ? r.storage[i] : CONTAINER_BASE - 1;
+        if (i == this->storage.size())
             this->storage.push_back(ld & rd);
         else
             this->storage[i] = ld & rd;
@@ -332,15 +324,15 @@ big_integer &big_integer::operator&=(big_integer const &rhs) {
 
 big_integer &big_integer::operator|=(big_integer const &rhs) {
     big_integer r = rhs;
-    int sz = std::max(this->storage.size(), r.storage.size());
+    size_t sz = std::max(this->storage.size(), r.storage.size());
     this->comp(sz);
     r.comp(sz);
 
     this->storage.reserve(sz);
-    for (int i = 0; i < sz; i++) {
-        unsigned ld = (i < (int)this->storage.size()) ? this->storage[i] : 0;
-        unsigned rd = (i < (int)r.storage.size()) ? r.storage[i] : 0;
-        if (i == (int)this->storage.size())
+    for (size_t i = 0; i < sz; i++) {
+        unsigned ld = (i < this->storage.size()) ? this->storage[i] : 0;
+        unsigned rd = (i < r.storage.size()) ? r.storage[i] : 0;
+        if (i == this->storage.size())
             this->storage.push_back(ld & rd);
         else
             this->storage[i] = ld | rd;
@@ -357,15 +349,15 @@ big_integer &big_integer::operator|=(big_integer const &rhs) {
 
 big_integer &big_integer::operator^=(big_integer const &rhs) {
     big_integer r = rhs;
-    int sz = std::max(this->storage.size(), r.storage.size());
+    size_t sz = std::max(this->storage.size(), r.storage.size());
     this->comp(sz);
     r.comp(sz);
 
     this->storage.reserve(sz);
-    for (int i = 0; i < sz; i++) {
-        unsigned ld = (i < (int)this->storage.size()) ? this->storage[i] : 0;
-        unsigned rd = (i < (int)r.storage.size()) ? r.storage[i] : 0;
-        if (i == (int)this->storage.size())
+    for (size_t i = 0; i < sz; i++) {
+        unsigned ld = (i < this->storage.size()) ? this->storage[i] : 0;
+        unsigned rd = (i < r.storage.size()) ? r.storage[i] : 0;
+        if (i == this->storage.size())
             this->storage.push_back(ld & rd);
         else
             this->storage[i] = ld ^ rd;
@@ -427,9 +419,6 @@ std::string to_string(big_integer const &a) {// FIXME implement lsd / lsm
 
         const std::string &string = std::to_string(mod.storage[0]);
 
-        if (string == "") {
-            std::cout << "dicks";
-        }
         r = ((string == "0") ? "00000000" : string) + r;
         c = div;
     }
@@ -509,7 +498,7 @@ big_integer operator>>(big_integer a, int b) {
 big_integer &big_integer::operator*=(big_integer const &rhs) {
     if (rhs.storage.size() == 1) {
         this->sign *= rhs.sign;
-        return this->mul_l_s(rhs.storage[0]);
+        return this->mul_l_s(rhs.storage.at(0));
     }
 
     if (this->is_z()) {
@@ -521,9 +510,9 @@ big_integer &big_integer::operator*=(big_integer const &rhs) {
     for (int i = 0; i < (int)c.storage.size(); i++) {
         long long carry = 0, cur;
         for (int j = 0; j < (int)rhs.storage.size() || carry; j++) {
-            cur = this->storage[i + j] + c.storage[i] * 1ll * (j < (int)rhs.storage.size() ? rhs.storage[j] : 0) + carry;
+            cur = this->storage.at(i + j) + c.storage.at(i) * 1ll * (j < (int)rhs.storage.size() ? rhs.storage.at(j) : 0) + carry;
             this->storage[i + j] = (unsigned)(cur & (CONTAINER_BASE - 1));
-            carry = (cur >>= BASE_POW);
+            carry = cur >>= BASE_POW;
         }
     }
     this->sign = c.sign * rhs.sign;
@@ -532,56 +521,146 @@ big_integer &big_integer::operator*=(big_integer const &rhs) {
     return *this;
 }
 
-big_integer &big_integer::operator/=(big_integer const &rhop) {
-    if (*this == 0)
+//big_integer &big_integer::operator/=(big_integer const &rhop) {
+//    if (*this == 0)
+//        return *this;
+//
+//    if (rhop.storage.size() == 1) {
+//        this->sign *= rhop.sign;
+//        return this->div_l_s(rhop.storage.at(0));
+//    }
+//
+//    big_integer rhs = rhop;
+//    rhs.sign = 1;
+//    big_integer res, cur, t;
+//    res.storage.resize(this->storage.size());
+//    cur.storage.reserve(this->storage.size());
+//
+//    t.storage.reserve(rhs.storage.size() + 2);
+//    for (int i = this->storage.size() - 1; i >= 0; i--) {
+//        cur <<= BASE_POW;
+//        cur.storage[0] = this->storage.at(i);
+//        bool cache = false;
+//
+//        int l = 0, r = CONTAINER_BASE;
+//        if (rhs <= cur) {
+//            while (l + 1 < r) {
+//                int m = (l + r) >> 1;
+//                t = rhs;
+//                t.mul_l_s(m);
+//                if (t <= cur) {
+//                    l = m;
+//                    cache = true;
+//                }
+//                else {
+//                    r = m;
+//                    cache = false;
+//                }
+//            }
+//        }
+//
+//        res.storage[i] = l;
+//        if (!cache) {
+//            t = rhs;
+//            t.mul_l_s(l);
+//        }
+//        cur -= t;
+//    }
+//
+//    res.cutoff();
+//    res.sign = this->sign * rhop.sign;
+//    std::swap(*this, res);
+//    return *this;
+//}
+
+big_integer &big_integer::operator/=(big_integer const &rhs) {
+    big_integer ans;
+    big_integer b(rhs);
+    ans.sign = sign * rhs.sign;
+    sign = b.sign = 1;
+
+    ans.storage.reserve(storage.size());
+    ans.storage.resize(0);
+
+    if (b == 1 || b == -1)
+    {
+        sign = ans.sign;
         return *this;
-
-    if (rhop.storage.size() == 1) {
-        this->sign *= rhop.sign;
-        return this->div_l_s(rhop.storage[0]);
     }
 
-    big_integer rhs = rhop;
-    rhs.sign = 1;
-    big_integer res, cur, t;
-    res.storage.resize(this->storage.size());
-    cur.storage.reserve(this->storage.size());
-
-    for (int i = this->storage.size() - 1; i >= 0; i--) {
-        cur <<= BASE_POW;
-        cur.storage[0] = this->storage[i];
-        bool cache = false;
-
-        int l = 0, r = CONTAINER_BASE;
-        if (rhs <= cur) {
-            while (l + 1 < r) {
-                int m = (l + r) >> 1;
-                t = rhs;
-                t.mul_l_s(m);
-                if (t <= cur) {
-                    l = m;
-                    cache = true;
-                }
-                else {
-                    r = m;
-                    cache = false;
-                }
-            }
-        }
-
-        res.storage[i] = l;
-        if (!cache) {
-            t = rhs;
-            t.mul_l_s(l);
-        }
-        cur -= t;
+    if (*this == b)
+    {
+        *this = 1;
+        sign = ans.sign;
+        return *this;
     }
 
-    res.cutoff();
-    res.sign = this->sign * rhop.sign;
-    std::swap(*this, res);
-    return *this;
+    if (*this < b)
+    {
+        ans = 0;
+        *this = ans;
+        return *this;
+    }
+
+    if (b.storage.size() == 1)
+    {
+        sign = ans.sign;
+        div_l_s(b.storage.at(0));
+        return *this;
+    }
+
+    int n = b.storage.size();
+    int m = storage.size() - n;
+    if (b.storage.at(n - 1) <= CONTAINER_BASE / 2)
+    {
+        long long sc = CONTAINER_BASE / (b.storage.at(n - 1) + 1);
+        *this *= sc;
+        b *= sc;
+    }
+    n = b.storage.size();
+    m = storage.size() - n;
+
+    for (long long i = m - 1; i >= 0; i--)
+    {
+        if (storage.size() == 1 && storage[0] == 0)
+        {
+            ans.storage.push_back(0);
+            continue;
+        }
+        unsigned long long qc = (storage[n + i] * 1ull * CONTAINER_BASE + 1ull * storage[n + i - 1]);
+        qc /= (1ull * (b.storage.at(n - 1)));
+
+        if (qc >= CONTAINER_BASE)
+        {
+            i++;
+            qc /= CONTAINER_BASE;
+            qc++;
+        }
+        big_integer y = (b * (long long) qc);
+        y <<= (i * BASE_POW);
+        *this -= y;
+        while (sign < 0)
+        {
+            *this += y;
+            qc--;
+            y = b * (long long) qc;
+            y <<= (i * BASE_POW);
+            *this -= y;
+        }
+        ans.storage.push_back(qc);
+    }
+
+
+    size_t size = ans.storage.size();
+    for (size_t i = 0; i < size / 2; i++) {
+        std::swap(ans.storage[i], ans.storage[size - i - 1]);
+    }
+    
+    ans.cutoff();
+
+    return *this = ans;
 }
+
 
 big_integer &big_integer::operator%=(big_integer const &rhs) {
     big_integer d = *this / rhs;
@@ -605,21 +684,21 @@ big_integer operator%(big_integer a, big_integer const &b) {
 
 
 void big_integer::cutoff() {
-    while (this->storage.size() > 1 && this->storage[this->storage.size() - 1] == 0) {
+    while (this->storage.size() > 1 && this->storage.at(this->storage.size() - 1) == 0) {
         this->storage.pop_back();
     }
 
     return;
 }
 
-big_integer &big_integer::comp(int sz) {
+big_integer &big_integer::comp(size_t sz) {
     this->storage.resize(sz, 0);
 
     if (this->sign == 1)
         return *this;
 
     for (size_t i = 0; i < this->storage.size(); i++) {
-        this->storage[i] = -this->storage[i];
+        this->storage[i] *= -1;
     }
 
     return *this;
@@ -627,22 +706,21 @@ big_integer &big_integer::comp(int sz) {
 
 big_integer &big_integer::mul_l_s(unsigned s) {
     long long acc = 0;
-    int sz = this->storage.size();
+    size_t sz = this->storage.size();
+    this->storage.reserve(sz + 1);
 
     if (s == 0) {
         *this = 0;
         return *this;
     }
 
-    for (int i = 0; i < sz; i++) {
-        acc += this->storage[i] * 1ll * s;
+    for (size_t i = 0; i < sz; i++) {
+        acc += this->storage.at(i) * 1ll * s;
         this->storage[i] = acc & (CONTAINER_BASE - 1);
         acc >>= BASE_POW;
     }
 
-    if (acc != 0) {
-        this->storage.push_back(acc);
-    }
+    this->storage.push_back(acc);
 
     this->cutoff();
 
@@ -661,3 +739,12 @@ big_integer &big_integer::div_l_s(unsigned s) {
 
     return *this;
 }
+
+big_integer::big_integer(big_integer &&other) : storage(std::move(other.storage)), sign(other.sign) {}
+big_integer& big_integer::operator=(big_integer &&other) {
+    storage = std::move(other.storage);
+    sign = other.sign;
+    return *this;
+}
+
+

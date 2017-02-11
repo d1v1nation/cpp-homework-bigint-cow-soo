@@ -7,16 +7,23 @@
 
 #include <string>
 #include <vector>
+#include "cow_soo_vector.h"
 
 struct big_integer
 {
+    template <typename T>
+    using vector = cow_soo_vector<T>;
+
+
     big_integer();
     big_integer(big_integer const& other);
+    big_integer(big_integer &&other);
     big_integer(int a);
     explicit big_integer(std::string const& str);
     ~big_integer();
 
     big_integer& operator=(big_integer const& other);
+    big_integer& operator=(big_integer &&other);
 
     big_integer& operator+=(big_integer const& rhs);
     big_integer& operator-=(big_integer const& rhs);
@@ -51,7 +58,7 @@ struct big_integer
     friend std::string to_string(big_integer const& a);
 
 //private:
-    std::vector<unsigned int> storage;
+    vector<unsigned int> storage;
     signed char sign;
 
     big_integer add(const big_integer &other) const;
@@ -62,7 +69,7 @@ struct big_integer
 
     void cutoff();
 
-    big_integer& comp(int sz);
+    big_integer& comp(size_t sz);
 
     big_integer& mul_l_s(unsigned s);
     big_integer& div_l_s(unsigned s);
